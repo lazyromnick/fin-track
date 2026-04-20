@@ -19,24 +19,14 @@
       <span class="logo-icon">◈</span>
       <span class="logo-text">FinTrack</span>
     </div>
-    <button class="sidebar-close" id="sidebarClose" aria-label="Close">✕</button>
+    <button class="sidebar-close" id="sidebarClose">✕</button>
   </div>
-
   <nav class="sidebar-nav">
-    <button class="nav-btn active" data-view="dashboard">
-      <span class="nav-icon">⬡</span> Dashboard
-    </button>
-    <button class="nav-btn" data-view="transactions">
-      <span class="nav-icon">⇄</span> Transactions
-    </button>
-    <button class="nav-btn" data-view="budgets">
-      <span class="nav-icon">◎</span> Budgets
-    </button>
-    <button class="nav-btn" data-view="analytics">
-      <span class="nav-icon">◈</span> Analytics
-    </button>
+    <button class="nav-btn active" data-view="dashboard"><span class="nav-icon">⬡</span> Dashboard</button>
+    <button class="nav-btn" data-view="transactions"><span class="nav-icon">⇄</span> Transactions</button>
+    <button class="nav-btn" data-view="budgets"><span class="nav-icon">◎</span> Budgets</button>
+    <button class="nav-btn" data-view="analytics"><span class="nav-icon">◈</span> Analytics</button>
   </nav>
-
   <div class="sidebar-bottom">
     <div class="sidebar-section">
       <span class="section-label">Currency</span>
@@ -48,27 +38,25 @@
     </div>
     <div class="sidebar-section theme-row">
       <span class="section-label">Theme</span>
-      <button class="theme-btn" id="themeToggle">
-        <span class="theme-icon">☽</span>
-      </button>
+      <button class="theme-btn" id="themeToggle"><span class="theme-icon">☽</span></button>
     </div>
-    <div class="sidebar-footer">Built by Romnick &amp; Claude — 🇵🇭<br/>Version 2.1</div>
+    <div class="sidebar-footer">Built by Romnick &amp; Claude — 🇵🇭<br/>Version 2.2</div>
   </div>
 </aside>
-
 <div class="sidebar-backdrop hidden" id="sidebarBackdrop"></div>
 
 <!-- ════════════════════ MAIN ════════════════════ -->
 <main class="main-wrap">
 
   <header class="topbar">
-    <button class="hamburger" id="hamburger" aria-label="Menu">☰</button>
+    <button class="hamburger" id="hamburger">☰</button>
     <h1 class="page-title" id="pageTitle">Dashboard</h1>
   </header>
 
   <!-- ─── DASHBOARD ─── -->
   <section class="view active" id="view-dashboard">
 
+    <!-- Summary Cards -->
     <div class="cards-grid">
       <div class="card card-income">
         <div class="card-label">Total Income</div>
@@ -92,21 +80,22 @@
       </div>
     </div>
 
+    <!-- Period Summaries -->
     <div class="period-row">
       <div class="period-card">
         <div class="period-title">🗓️ This Week</div>
         <div class="period-stats">
           <div class="period-item">
-            <span class="period-label">In</span>
-            <span class="period-val income" id="weekIncome">₱0</span>
+            <span class="period-label">IN</span>
+            <span class="period-val income" id="weekIncome">₱0.00</span>
           </div>
           <div class="period-item">
-            <span class="period-label">Out</span>
-            <span class="period-val expense" id="weekExpense">₱0</span>
+            <span class="period-label">OUT</span>
+            <span class="period-val expense" id="weekExpense">₱0.00</span>
           </div>
           <div class="period-item">
-            <span class="period-label">Net</span>
-            <span class="period-val" id="weekBalance">₱0</span>
+            <span class="period-label">NET</span>
+            <span class="period-val" id="weekBalance">₱0.00</span>
           </div>
         </div>
       </div>
@@ -114,21 +103,54 @@
         <div class="period-title">📆 This Month</div>
         <div class="period-stats">
           <div class="period-item">
-            <span class="period-label">In</span>
-            <span class="period-val income" id="monthIncome">₱0</span>
+            <span class="period-label">IN</span>
+            <span class="period-val income" id="monthIncome">₱0.00</span>
           </div>
           <div class="period-item">
-            <span class="period-label">Out</span>
-            <span class="period-val expense" id="monthExpense">₱0</span>
+            <span class="period-label">OUT</span>
+            <span class="period-val expense" id="monthExpense">₱0.00</span>
           </div>
           <div class="period-item">
-            <span class="period-label">Net</span>
-            <span class="period-val" id="monthBalance">₱0</span>
+            <span class="period-label">NET</span>
+            <span class="period-val" id="monthBalance">₱0.00</span>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Today's Overview (NEW) -->
+    <div class="today-card">
+      <div class="today-header">
+        <span class="today-title">☀️ Today's Overview</span>
+        <span class="today-date" id="todayDate"></span>
+      </div>
+      <div class="today-body">
+        <div class="today-stat">
+          <span class="today-label">Income</span>
+          <span class="today-val income" id="todayIncome">₱0.00</span>
+        </div>
+        <div class="today-divider"></div>
+        <div class="today-stat">
+          <span class="today-label">Expenses</span>
+          <span class="today-val expense" id="todayExpense">₱0.00</span>
+        </div>
+        <div class="today-divider"></div>
+        <div class="today-stat">
+          <span class="today-label">Net</span>
+          <span class="today-val" id="todayNet">₱0.00</span>
+        </div>
+        <div class="today-divider"></div>
+        <div class="today-stat">
+          <span class="today-label">Transactions</span>
+          <span class="today-val" id="todayCount" style="color:var(--text-primary)">0</span>
+        </div>
+      </div>
+      <div class="today-txlist" id="todayTxList">
+        <div class="today-empty">No transactions today yet.</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
     <div class="charts-row">
       <div class="chart-card">
         <div class="chart-title">Expenses by Category</div>
@@ -149,10 +171,9 @@
 
   <!-- ─── TRANSACTIONS ─── -->
   <section class="view" id="view-transactions">
-
     <div class="filter-bar">
       <div class="filter-row">
-        <input type="text" id="searchInput" placeholder="🔍  Search transactions…" class="search-input" />
+        <input type="text" id="searchInput" placeholder="🔍  Search…" class="search-input" />
         <select id="filterPeriod" class="filter-select">
           <option value="all">All Time</option>
           <option value="today">Today</option>
@@ -175,11 +196,8 @@
           <button class="type-pill" data-filter="income">Income</button>
         </div>
         <div class="csv-actions">
-          <label class="btn-csv">
-            ↑ Import CSV
-            <input type="file" id="importCSV" accept=".csv" class="hidden-input" />
-          </label>
-          <button class="btn-csv" id="exportCSV">↓ Export CSV</button>
+          <label class="btn-csv">↑ Import<input type="file" id="importCSV" accept=".csv" class="hidden-input" /></label>
+          <button class="btn-csv" id="exportCSV">↓ Export</button>
         </div>
       </div>
     </div>
@@ -190,26 +208,20 @@
           <tr>
             <th data-sort="date">Date <span class="sort-arrow">↕</span></th>
             <th data-sort="description">Description <span class="sort-arrow">↕</span></th>
-            <th class="col-hide-sm">Category</th>
-            <th class="col-hide-sm">Type</th>
             <th data-sort="amount" class="col-right">Amount <span class="sort-arrow">↕</span></th>
-            <th class="col-right col-hide-md">Balance</th>
             <th class="col-act">Actions</th>
           </tr>
         </thead>
         <tbody id="txBody">
-          <tr>
-            <td colspan="7">
-              <div class="empty-state">
-                <span class="empty-icon">◈</span>
-                <p>No transactions yet. Tap + to add one!</p>
-              </div>
-            </td>
-          </tr>
+          <tr><td colspan="4">
+            <div class="empty-state">
+              <span class="empty-icon">◈</span>
+              <p>No transactions yet. Tap + to add one!</p>
+            </div>
+          </td></tr>
         </tbody>
       </table>
     </div>
-
   </section>
 
   <!-- ─── BUDGETS ─── -->
@@ -243,21 +255,17 @@
     </div>
     <div class="chart-card" style="margin-top:1rem;">
       <div class="chart-title">All-Time Income vs Expenses by Month</div>
-      <div class="chart-wrap" style="height:280px;">
-        <canvas id="analyticsBar"></canvas>
-      </div>
+      <div class="chart-wrap" style="height:280px;"><canvas id="analyticsBar"></canvas></div>
     </div>
     <div class="chart-card" style="margin-top:1rem;">
       <div class="chart-title">Category Breakdown (Expenses)</div>
-      <div class="chart-wrap" style="height:260px;">
-        <canvas id="categoryBar"></canvas>
-      </div>
+      <div class="chart-wrap" style="height:260px;"><canvas id="categoryBar"></canvas></div>
     </div>
   </section>
 
 </main>
 
-<!-- ════════════════════ FLOATING ADD BUTTON ════════════════════ -->
+<!-- ════════════════════ FAB ════════════════════ -->
 <button class="fab" id="openAddModal" aria-label="Add transaction">
   <span class="fab-plus">+</span>
 </button>
@@ -270,65 +278,55 @@
       <button class="modal-close" id="closeModal">✕</button>
     </div>
 
+    <!-- Auto-cat banner -->
     <div class="autocat-banner hidden" id="autocatBanner">
-      <span>✦ Auto-categorized:</span> <strong id="autocatName"></strong>
+      ✦ Auto-categorized: <strong id="autocatName"></strong>
     </div>
 
     <div class="modal-body">
-      <div class="form-row">
-        <div class="form-group fg-grow">
-          <label>Description</label>
-          <input type="text" id="txDescription" placeholder="e.g. Jollibee, jeepney, load…" maxlength="80" autocomplete="off" />
-        </div>
-        <div class="form-group fg-fixed">
+
+      <!-- Description — full width -->
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" id="txDescription" placeholder="e.g. Jollibee, jeepney, allowance…" maxlength="80" autocomplete="off" />
+      </div>
+
+      <!-- Amount + Date — side by side -->
+      <div class="form-row-2">
+        <div class="form-group">
           <label>Amount</label>
           <input type="number" id="txAmount" placeholder="0.00" min="0.01" step="0.01" inputmode="decimal" />
         </div>
-      </div>
-      <div class="form-row">
         <div class="form-group">
-          <label>Type</label>
-          <div class="type-toggle">
-            <button class="type-opt active" data-type="expense">Expense</button>
-            <button class="type-opt" data-type="income">Income</button>
-          </div>
-        </div>
-        <div class="form-group fg-grow">
-          <label>Category</label>
-          <select id="txCategory">
-            <optgroup label="── Expenses ──">
-              <option value="Food">🍜 Food</option>
-              <option value="Transport">🚌 Transport</option>
-              <option value="Bills">💡 Bills &amp; Utilities</option>
-              <option value="Shopping">🛍️ Shopping</option>
-              <option value="Communication">📱 Load / Internet</option>
-              <option value="Health">🏥 Health</option>
-              <option value="Education">📚 Education / School</option>
-              <option value="Housing">🏠 Housing / Rent</option>
-              <option value="Entertainment">🎮 Entertainment</option>
-              <option value="Others">📦 Others</option>
-            </optgroup>
-            <optgroup label="── Income ──">
-              <option value="Allowance">💰 Allowance / Baon</option>
-              <option value="Salary">💼 Salary / Part-time</option>
-              <option value="Freelance">💻 Freelance / Online Work</option>
-              <option value="Gift">🎁 Gift / Padala</option>
-              <option value="Others">📦 Others</option>
-            </optgroup>
-          </select>
-        </div>
-        <div class="form-group fg-fixed">
           <label>Date</label>
           <input type="date" id="txDate" />
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group fg-grow">
-          <label>Note <span class="optional">(optional)</span></label>
-          <input type="text" id="txNote" placeholder="Extra details…" maxlength="120" />
+
+      <!-- Type toggle — full width -->
+      <div class="form-group">
+        <label>Type</label>
+        <div class="type-toggle">
+          <button class="type-opt active" data-type="expense">Expense</button>
+          <button class="type-opt" data-type="income">Income</button>
         </div>
       </div>
-    </div>
+
+      <!-- Category picker (custom, not native select) -->
+      <div class="form-group">
+        <label>Category</label>
+        <div class="cat-picker" id="catPicker">
+          <!-- populated by JS based on type -->
+        </div>
+      </div>
+
+      <!-- Note — full width -->
+      <div class="form-group">
+        <label>Note <span class="optional">(optional)</span></label>
+        <input type="text" id="txNote" placeholder="Extra details…" maxlength="120" />
+      </div>
+
+    </div><!-- /modal-body -->
 
     <div class="modal-footer">
       <button class="btn-ghost" id="cancelModal">Cancel</button>
@@ -345,7 +343,7 @@
       <button class="modal-close" id="closeDelete">✕</button>
     </div>
     <div class="modal-body">
-      <p class="confirm-text">This action cannot be undone.</p>
+      <p class="confirm-text">This cannot be undone.</p>
     </div>
     <div class="modal-footer">
       <button class="btn-ghost" id="cancelDelete">Cancel</button>
