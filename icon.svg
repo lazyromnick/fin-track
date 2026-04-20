@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0c0d10"/>
+      <stop offset="100%" style="stop-color:#13151a"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00e5a0"/>
+      <stop offset="100%" style="stop-color:#00b87a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#c8a96e"/>
+      <stop offset="100%" style="stop-color:#a07840"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="18" flood-color="#00e5a0" flood-opacity="0.35"/>
+    </filter>
+    <filter id="innershadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <clipPath id="roundedClip">
+      <rect width="512" height="512" rx="112" ry="112"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- Subtle grid lines -->
+  <g opacity="0.06" stroke="#00e5a0" stroke-width="1">
+    <line x1="0" y1="128" x2="512" y2="128"/>
+    <line x1="0" y1="256" x2="512" y2="256"/>
+    <line x1="0" y1="384" x2="512" y2="384"/>
+    <line x1="128" y1="0" x2="128" y2="512"/>
+    <line x1="256" y1="0" x2="256" y2="512"/>
+    <line x1="384" y1="0" x2="384" y2="512"/>
+  </g>
+
+  <!-- Glowing ring -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="url(#glow)" stroke-width="2.5" opacity="0.18" filter="url(#shadow)"/>
+  <circle cx="256" cy="256" r="155" fill="none" stroke="url(#glow)" stroke-width="1" opacity="0.1"/>
+
+  <!-- Center card / shield shape -->
+  <rect x="148" y="148" width="216" height="216" rx="36" fill="#1a1d24" stroke="#252830" stroke-width="2"/>
+  <rect x="148" y="148" width="216" height="44" rx="36" fill="#1f2230"/>
+  <rect x="148" y="170" width="216" height="22" fill="#1f2230"/>
+
+  <!-- Card stripe (gold accent bar) -->
+  <rect x="148" y="148" width="216" height="5" rx="2.5" fill="url(#accent)"/>
+
+  <!-- Peso symbol -->
+  <text x="256" y="296" text-anchor="middle"
+        font-family="'Arial Black', 'Helvetica Neue', sans-serif"
+        font-size="108" font-weight="900"
+        fill="url(#glow)" filter="url(#shadow)" opacity="0.95">₱</text>
+
+  <!-- Rising bar chart (bottom-left area of card) -->
+  <g transform="translate(170, 320)" opacity="0.75">
+    <rect x="0"  y="28" width="16" height="12" rx="3" fill="#00e5a0" opacity="0.5"/>
+    <rect x="22" y="18" width="16" height="22" rx="3" fill="#00e5a0" opacity="0.7"/>
+    <rect x="44" y="6"  width="16" height="34" rx="3" fill="#00e5a0"/>
+  </g>
+
+  <!-- Upward arrow trend line -->
+  <g transform="translate(310, 316)" opacity="0.85">
+    <polyline points="0,36 16,20 32,28 52,4"
+              fill="none" stroke="url(#glow)" stroke-width="5"
+              stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Arrow head -->
+    <polygon points="44,0 60,4 52,18" fill="url(#glow)"/>
+  </g>
+
+  <!-- Top label dots on card header -->
+  <circle cx="180" cy="170" r="5" fill="#ff4d6d" opacity="0.7"/>
+  <circle cx="198" cy="170" r="5" fill="#c8a96e" opacity="0.7"/>
+  <circle cx="216" cy="170" r="5" fill="#00e5a0" opacity="0.7"/>
+
+  <!-- Outer glow dots (corner accents) -->
+  <circle cx="108" cy="108" r="6" fill="#00e5a0" opacity="0.2"/>
+  <circle cx="404" cy="108" r="6" fill="#c8a96e" opacity="0.2"/>
+  <circle cx="108" cy="404" r="6" fill="#c8a96e" opacity="0.2"/>
+  <circle cx="404" cy="404" r="6" fill="#00e5a0" opacity="0.2"/>
+</svg>

@@ -716,14 +716,18 @@ body {
 
 /* ═══════════════════════════ FAB ═══════════════════════════ */
 .fab {
-  position: fixed; bottom: 1.75rem; right: 1.75rem; z-index: 150;
+  position: fixed; bottom: 1.75rem; right: -28px; z-index: 150;
   width: 56px; height: 56px; border-radius: 50%;
   background: var(--income); border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 4px 20px rgba(0,229,160,.4), var(--sh-md);
-  transition: transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s;
+  transition: right .35s cubic-bezier(.34,1.56,.64,1), transform .2s, box-shadow .2s;
 }
-.fab:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(0,229,160,.55); }
+.fab:hover,
+.fab.expanded {
+  right: 1.75rem;
+  box-shadow: 0 6px 28px rgba(0,229,160,.55);
+}
 .fab:active { transform: scale(.95); }
 .fab-plus { color: #000; font-size: 1.85rem; font-weight: 700; line-height: 1; margin-top: -1px; }
 
@@ -822,7 +826,8 @@ body {
   .cat-picker { grid-template-columns: repeat(3, 1fr); }
 
   /* FAB */
-  .fab { bottom: 1.4rem; right: 1.1rem; width: 52px; height: 52px; }
+  .fab { bottom: 1.4rem; right: -26px; width: 52px; height: 52px; }
+  .fab:hover, .fab.expanded { right: 1.1rem; }
   .fab-plus { font-size: 1.65rem; }
 }
 

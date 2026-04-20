@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FinTrack — Personal Finance</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <meta name="theme-color" content="#00e5a0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="FinTrack" />
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -28,19 +33,11 @@
     <button class="nav-btn" data-view="analytics"><span class="nav-icon">◈</span> Analytics</button>
   </nav>
   <div class="sidebar-bottom">
-    <div class="sidebar-section">
-      <span class="section-label">Currency</span>
-      <div class="currency-pills">
-        <button class="currency-btn active" data-currency="PHP">₱</button>
-        <button class="currency-btn" data-currency="USD">$</button>
-        <button class="currency-btn" data-currency="EUR">€</button>
-      </div>
-    </div>
     <div class="sidebar-section theme-row">
       <span class="section-label">Theme</span>
       <button class="theme-btn" id="themeToggle"><span class="theme-icon">☽</span></button>
     </div>
-    <div class="sidebar-footer">Built by Romnick &amp; Claude — 🇵🇭<br/>Version 2.2</div>
+    <div class="sidebar-footer">Built by Claude™ &mdash; 2025</div>
   </div>
 </aside>
 <div class="sidebar-backdrop hidden" id="sidebarBackdrop"></div>
@@ -80,6 +77,38 @@
       </div>
     </div>
 
+    <!-- Today's Overview -->
+    <div class="today-card">
+      <div class="today-header">
+        <span class="today-title">☀️ Today's Overview</span>
+        <span class="today-date" id="todayDate"></span>
+      </div>
+      <div class="today-body">
+        <div class="today-stat">
+          <span class="today-label">Income</span>
+          <span class="today-val income" id="todayIncome">₱0.00</span>
+        </div>
+        <div class="today-divider"></div>
+        <div class="today-stat">
+          <span class="today-label">Expenses</span>
+          <span class="today-val expense" id="todayExpense">₱0.00</span>
+        </div>
+        <div class="today-divider"></div>
+        <div class="today-stat">
+          <span class="today-label">Net</span>
+          <span class="today-val" id="todayNet">₱0.00</span>
+        </div>
+        <div class="today-divider"></div>
+        <div class="today-stat">
+          <span class="today-label">Transactions</span>
+          <span class="today-val" id="todayCount" style="color:var(--text-primary)">0</span>
+        </div>
+      </div>
+      <div class="today-txlist" id="todayTxList">
+        <div class="today-empty">No transactions today yet.</div>
+      </div>
+    </div>
+
     <!-- Period Summaries -->
     <div class="period-row">
       <div class="period-card">
@@ -115,38 +144,6 @@
             <span class="period-val" id="monthBalance">₱0.00</span>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Today's Overview (NEW) -->
-    <div class="today-card">
-      <div class="today-header">
-        <span class="today-title">☀️ Today's Overview</span>
-        <span class="today-date" id="todayDate"></span>
-      </div>
-      <div class="today-body">
-        <div class="today-stat">
-          <span class="today-label">Income</span>
-          <span class="today-val income" id="todayIncome">₱0.00</span>
-        </div>
-        <div class="today-divider"></div>
-        <div class="today-stat">
-          <span class="today-label">Expenses</span>
-          <span class="today-val expense" id="todayExpense">₱0.00</span>
-        </div>
-        <div class="today-divider"></div>
-        <div class="today-stat">
-          <span class="today-label">Net</span>
-          <span class="today-val" id="todayNet">₱0.00</span>
-        </div>
-        <div class="today-divider"></div>
-        <div class="today-stat">
-          <span class="today-label">Transactions</span>
-          <span class="today-val" id="todayCount" style="color:var(--text-primary)">0</span>
-        </div>
-      </div>
-      <div class="today-txlist" id="todayTxList">
-        <div class="today-empty">No transactions today yet.</div>
       </div>
     </div>
 
