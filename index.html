@@ -14,6 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -31,6 +32,7 @@
     <button class="nav-btn" data-view="transactions"><span class="nav-icon">⇄</span> Transactions</button>
     <button class="nav-btn" data-view="budgets"><span class="nav-icon">◎</span> Budgets</button>
     <button class="nav-btn" data-view="analytics"><span class="nav-icon">◈</span> Analytics</button>
+    <button class="nav-btn" data-view="receipts"><span class="nav-icon">🧾</span> Receipts</button>
   </nav>
   <div class="sidebar-bottom">
     <div class="sidebar-section theme-row">
@@ -260,7 +262,33 @@
     </div>
   </section>
 
+  <!-- ─── RECEIPTS ─── -->
+  <section class="view" id="view-receipts">
+    <div class="receipts-topbar">
+      <div class="receipts-generate-group">
+        <span class="receipts-label">Generate Receipt for</span>
+        <div class="receipt-period-pills">
+          <button class="rcp-pill active" data-period="today">Today</button>
+          <button class="rcp-pill" data-period="week">This Week</button>
+          <button class="rcp-pill" data-period="month">This Month</button>
+        </div>
+        <button class="btn-primary" id="generateReceiptBtn">🧾 Generate</button>
+      </div>
+    </div>
+
+    <!-- Saved receipts container -->
+    <div class="receipts-list" id="receiptsList">
+      <div class="receipts-empty" id="receiptsEmpty">
+        <span class="empty-icon">🧾</span>
+        <p>No receipts yet. Generate one above!</p>
+      </div>
+    </div>
+  </section>
+
 </main>
+
+<!-- ════════════════════ RECEIPT RENDER SURFACE (off-screen) ════════════════════ -->
+<div id="receiptRenderArea" style="position:fixed;left:-9999px;top:0;z-index:-1;"></div>
 
 <!-- ════════════════════ FAB ════════════════════ -->
 <button class="fab" id="openAddModal" aria-label="Add transaction">

@@ -1349,9 +1349,10 @@ function switchView(view) {
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(`view-${view}`).classList.add('active');
   document.querySelector(`[data-view="${view}"]`).classList.add('active');
-  document.getElementById('pageTitle').textContent={dashboard:'Dashboard',transactions:'Transactions',budgets:'Budgets',analytics:'Analytics'}[view]||view;
+  document.getElementById('pageTitle').textContent={dashboard:'Dashboard',transactions:'Transactions',budgets:'Budgets',analytics:'Analytics',receipts:'Receipts'}[view]||view;
   if(view==='analytics')renderAnalytics();
   if(view==='budgets')renderBudgets();
+  if(view==='receipts')renderReceiptsList();
   closeSidebar();
 }
 
@@ -1494,6 +1495,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Budgets
   document.getElementById('saveBudgets').addEventListener('click', saveBudgets);
 
+  // Receipts — period pill selection
+  document.querySelectorAll('.rcp-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.rcp-pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+  document.getElementById('generateReceiptBtn').addEventListener('click', generateReceipt);
+
   // Theme
   document.getElementById('themeToggle').addEventListener('click',()=>{
     applyTheme(state.theme==='dark'?'light':'dark');
@@ -1529,4 +1539,428 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, { passive: false });
 
+});
+
+// ════════════════════════════════════════════════════════════════
+//  RECEIPTS ENGINE
+// ════════════════════════════════════════════════════════════════
+
+// In-memory receipt store (persisted to localStorage)
+let receiptStore = [];   // [{ id, period, label, dateRange, dataUrl, generatedAt }]
+
+function saveReceipts() {
+  try { localStorage.setItem('fintrack_receipts', JSON.stringify(receiptStore)); } catch(e){}
+}
+function loadReceipts() {
+  try {
+    const raw = localStorage.getItem('fintrack_receipts');
+    if (raw) receiptStore = JSON.parse(raw);
+  } catch(e){ receiptStore = []; }
+}
+
+// ── Date range helpers ──────────────────────────────────────────
+function getRangeForPeriod(period) {
+  const now = new Date();
+  let start, end, label, dateRange;
+
+  if (period === 'today') {
+    start = new Date(now); start.setHours(0,0,0,0);
+    end   = new Date(now); end.setHours(23,59,59,999);
+    label = 'Daily Receipt — ' + now.toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    dateRange = now.toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'});
+  } else if (period === 'week') {
+    const [ws,we] = getWeekRange();
+    start = ws; end = we;
+    label = 'Weekly Receipt — Week of ' + ws.toLocaleDateString('en-PH',{month:'short',day:'numeric'});
+    dateRange = ws.toLocaleDateString('en-PH',{month:'short',day:'numeric'}) + ' – ' + we.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
+  } else {
+    const [ms,me] = getMonthRange();
+    start = ms; end = me;
+    label = 'Monthly Receipt — ' + now.toLocaleDateString('en-PH',{month:'long',year:'numeric'});
+    dateRange = now.toLocaleDateString('en-PH',{month:'long',year:'numeric'});
+  }
+  return { start, end, label, dateRange };
+}
+
+// ── Smart saving tip generator ─────────────────────────────────
+function getSmartTip(income, expense, txs) {
+  const balance = income - expense;
+  const savingsRate = income > 0 ? (balance / income) * 100 : 0;
+
+  // Find top expense category
+  const catTotals = {};
+  txs.filter(t => t.type === 'expense').forEach(t => {
+    catTotals[t.category] = (catTotals[t.category] || 0) + t.amount;
+  });
+  const topCat = Object.entries(catTotals).sort((a,b)=>b[1]-a[1])[0];
+
+  if (income === 0 && expense === 0) {
+    return '💡 No transactions recorded for this period. Start tracking your spending to get personalized saving tips!';
+  }
+  if (income === 0) {
+    return `💡 No income recorded this period, but ₱${expense.toLocaleString('en-PH',{minimumFractionDigits:2})} was spent. Make sure to log your income sources so your balance stays accurate.`;
+  }
+  if (savingsRate >= 50) {
+    return `🌟 Amazing! You saved ${savingsRate.toFixed(0)}% of your income this period. Keep it up — consider moving your savings to a separate account or investment fund to make it grow.`;
+  }
+  if (savingsRate >= 30) {
+    return `✅ Great job! A ${savingsRate.toFixed(0)}% savings rate is solid. Financial experts recommend aiming for at least 20–30%. You're right on track!`;
+  }
+  if (savingsRate >= 10) {
+    const tip = topCat ? ` Try trimming your ${topCat[0]} budget (₱${topCat[1].toLocaleString('en-PH',{minimumFractionDigits:2})}) a little to boost your savings rate.` : '';
+    return `📊 You saved ${savingsRate.toFixed(0)}% this period — a good start!${tip} Aim for 20% or more for a healthy financial cushion.`;
+  }
+  if (balance >= 0) {
+    const tip = topCat ? ` Your biggest spending category is ${topCat[0]} at ₱${topCat[1].toLocaleString('en-PH',{minimumFractionDigits:2})}. Setting a budget limit there could help.` : '';
+    return `⚠️ You only saved ${savingsRate.toFixed(0)}% of your income.${tip} Try the 50/30/20 rule: 50% needs, 30% wants, 20% savings.`;
+  }
+  const over = Math.abs(balance).toLocaleString('en-PH',{minimumFractionDigits:2});
+  const tip = topCat ? ` Your top expense was ${topCat[0]} (₱${topCat[1].toLocaleString('en-PH',{minimumFractionDigits:2})}).` : '';
+  return `🚨 Expenses exceeded income by ₱${over} this period.${tip} Review non-essential spending and consider setting stricter category budgets to avoid going further into the red.`;
+}
+
+// ── Build the receipt HTML template ───────────────────────────
+function buildReceiptHTML(period, label, dateRange, txs) {
+  const income  = txs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const expense = txs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const balance = income - expense;
+  const allIncome = txs.filter(t=>t.type==='income');
+
+  // Group expenses by category
+  const catMap = {};
+  txs.filter(t=>t.type==='expense').forEach(t=>{
+    if(!catMap[t.category]) catMap[t.category]=[];
+    catMap[t.category].push(t);
+  });
+
+  const tip = getSmartTip(income, expense, txs);
+  const generatedAt = new Date().toLocaleString('en-PH',{
+    month:'short',day:'numeric',year:'numeric',
+    hour:'numeric',minute:'2-digit',hour12:true
+  });
+
+  const fmtAmt = n => '₱' + n.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  // Receipt ID / ref
+  const ref = 'FT-' + Date.now().toString(36).toUpperCase();
+
+  // Period label map
+  const periodLabels = { today:'DAILY', week:'WEEKLY', month:'MONTHLY' };
+
+  // ── Income rows ──
+  let incomeRows = '';
+  if (allIncome.length === 0) {
+    incomeRows = `<tr><td colspan="4" style="color:#888;font-style:italic;padding:8px 10px;">No income recorded.</td></tr>`;
+  } else {
+    allIncome.forEach(t => {
+      const d = parseDate(t.date).toLocaleDateString('en-PH',{month:'short',day:'numeric'});
+      const emoji = CATEGORY_EMOJI[t.category] || '💰';
+      incomeRows += `
+        <tr>
+          <td>${d}</td>
+          <td>${emoji} ${escHtml(t.description)}</td>
+          <td style="color:#555;">${escHtml(t.category)}</td>
+          <td style="color:#1a7a4a;">${fmtAmt(t.amount)}</td>
+        </tr>`;
+    });
+  }
+
+  // ── Expense category blocks ──
+  let expenseBlocks = '';
+  const catKeys = Object.keys(catMap).sort();
+  if (catKeys.length === 0) {
+    expenseBlocks = `<div style="font-family:Arial,sans-serif;font-size:12px;color:#888;font-style:italic;padding:8px 10px;">No expenses recorded.</div>`;
+  } else {
+    catKeys.forEach(cat => {
+      const emoji = CATEGORY_EMOJI[cat] || '📦';
+      const catTxs = catMap[cat].sort((a,b)=>a.date.localeCompare(b.date));
+      const catTotal = catTxs.reduce((s,t)=>s+t.amount,0);
+
+      let txRows = catTxs.map(t => {
+        const d = parseDate(t.date).toLocaleDateString('en-PH',{month:'short',day:'numeric'});
+        return `<div class="rcp-cat-tx">
+          <div class="rcp-cat-tx-date">${d}</div>
+          <div class="rcp-cat-tx-desc">${escHtml(t.description)}${t.note ? `<span style="color:#999;font-size:10px;"> · ${escHtml(t.note)}</span>` : ''}</div>
+          <div class="rcp-cat-tx-amt">${fmtAmt(t.amount)}</div>
+        </div>`;
+      }).join('');
+
+      expenseBlocks += `
+        <div class="rcp-cat-block">
+          <div class="rcp-cat-hdr-row">
+            <span class="rcp-cat-hdr-icon">${emoji}</span>
+            <span class="rcp-cat-hdr-name">${cat.toUpperCase()}</span>
+            <span class="rcp-cat-col-hdr rcp-cat-col-date">DATE</span>
+            <span class="rcp-cat-col-hdr rcp-cat-col-amt">AMOUNT</span>
+          </div>
+          ${txRows}
+          <div class="rcp-cat-total-row">
+            <span class="rcp-cat-total-label">SUBTOTAL — ${cat.toUpperCase()}</span>
+            <span class="rcp-cat-total-val">${fmtAmt(catTotal)}</span>
+          </div>
+        </div>`;
+    });
+  }
+
+  const balClass = balance >= 0 ? '' : 'negative';
+
+  return `
+<div class="receipt-tpl" id="receiptTpl">
+  <div class="receipt-tpl-inner">
+
+    <!-- Brand -->
+    <div class="rcp-brand">FinTrack</div>
+    <div class="rcp-divider-top">
+      <div class="rcp-line"></div>
+      <div class="rcp-diamond">◆</div>
+      <div class="rcp-line"></div>
+    </div>
+    <div class="rcp-subtitle">${periodLabels[period]} FINANCIAL RECEIPT</div>
+
+    <!-- Meta -->
+    <div class="rcp-meta">
+      <div class="rcp-meta-row">
+        <span class="rcp-meta-key">Period</span>
+        <span class="rcp-meta-colon">:</span>
+        <span class="rcp-meta-val">${escHtml(dateRange)}</span>
+      </div>
+      <div class="rcp-meta-row">
+        <span class="rcp-meta-key">Generated</span>
+        <span class="rcp-meta-colon">:</span>
+        <span class="rcp-meta-val">${generatedAt}</span>
+      </div>
+      <div class="rcp-meta-row">
+        <span class="rcp-meta-key">Transactions</span>
+        <span class="rcp-meta-colon">:</span>
+        <span class="rcp-meta-val">${txs.length} record${txs.length!==1?'s':''}</span>
+      </div>
+      <div class="rcp-meta-row">
+        <span class="rcp-meta-key">Ref No.</span>
+        <span class="rcp-meta-colon">:</span>
+        <span class="rcp-meta-val">${ref}</span>
+      </div>
+    </div>
+
+    <!-- ─── INCOME SECTION ─── -->
+    <div class="rcp-section-hdr">
+      <div class="rcp-section-icon inc">▲</div>
+      <div class="rcp-section-label inc">INCOME</div>
+    </div>
+    <table class="rcp-income-tbl">
+      <thead>
+        <tr>
+          <th style="width:90px;">DATE</th>
+          <th>DESCRIPTION</th>
+          <th style="width:100px;">CATEGORY</th>
+          <th style="width:100px;">AMOUNT</th>
+        </tr>
+      </thead>
+      <tbody>${incomeRows}</tbody>
+    </table>
+
+    <div class="rcp-total-row">
+      <span class="rcp-total-label">TOTAL INCOME</span>
+      <span class="rcp-total-val inc">${fmtAmt(income)}</span>
+    </div>
+
+    <!-- ─── EXPENSES SECTION ─── -->
+    <div class="rcp-section-hdr" style="margin-top:18px;">
+      <div class="rcp-section-icon exp">▼</div>
+      <div class="rcp-section-label exp">EXPENSES</div>
+    </div>
+    ${expenseBlocks}
+
+    <div class="rcp-total-row">
+      <span class="rcp-total-label">TOTAL EXPENSES</span>
+      <span class="rcp-total-val exp">${fmtAmt(expense)}</span>
+    </div>
+
+    <!-- ─── NET BALANCE ─── -->
+    <div class="rcp-balance-row">
+      <span class="rcp-balance-label">${balance >= 0 ? '✔ NET BALANCE' : '✘ NET BALANCE'}</span>
+      <span class="rcp-balance-val ${balClass}">${fmtAmt(Math.abs(balance))} ${balance >= 0 ? '(+)' : '(-)'}</span>
+    </div>
+
+    <!-- ─── SMART TIP ─── -->
+    <div class="rcp-tip-box">
+      <div class="rcp-tip-title">💡 Smart Saving Suggestion</div>
+      <div class="rcp-tip-text">${tip}</div>
+    </div>
+
+    <!-- ─── FOOTER ─── -->
+    <div class="rcp-footer">
+      <div class="rcp-footer-heart">♥</div>
+      <div class="rcp-footer-msg">Thank you for tracking with FinTrack!</div>
+      <div class="rcp-footer-sub">Built by Claude™ · Keep saving, keep growing.</div>
+    </div>
+  </div>
+  <div class="rcp-torn-bottom"></div>
+</div>`;
+}
+
+// ── Generate receipt: render → capture → store ─────────────────
+async function generateReceipt() {
+  const period = document.querySelector('.rcp-pill.active')?.dataset.period || 'today';
+  const { start, end, label, dateRange } = getRangeForPeriod(period);
+
+  const txs = state.transactions.filter(t => {
+    const d = parseDate(t.date);
+    return d >= start && d <= end;
+  }).sort((a,b) => a.date.localeCompare(b.date));
+
+  // Show a placeholder card while generating
+  const placeholderId = 'rcp-placeholder-' + Date.now();
+  const placeholder = document.createElement('div');
+  placeholder.className = 'receipt-card';
+  placeholder.id = placeholderId;
+  placeholder.innerHTML = `
+    <div class="receipt-card-header">
+      <div class="receipt-card-meta">
+        <div class="receipt-card-title">${escHtml(label)}</div>
+        <div class="receipt-card-date">Generating…</div>
+      </div>
+    </div>
+    <div class="receipt-generating">
+      <div class="spin-ring"></div>
+      <span>Building your receipt…</span>
+    </div>`;
+
+  const listEl = document.getElementById('receiptsList');
+  const emptyEl = document.getElementById('receiptsEmpty');
+  if (emptyEl) emptyEl.style.display = 'none';
+  listEl.prepend(placeholder);
+
+  // Render template off-screen
+  const renderArea = document.getElementById('receiptRenderArea');
+  renderArea.innerHTML = buildReceiptHTML(period, label, dateRange, txs);
+
+  await new Promise(r => setTimeout(r, 60)); // allow DOM paint
+
+  let dataUrl = null;
+  try {
+    const canvas = await html2canvas(renderArea.querySelector('.receipt-tpl'), {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#f5f4f0',
+      logging: false,
+    });
+    dataUrl = canvas.toDataURL('image/png');
+  } catch(err) {
+    console.warn('html2canvas error:', err);
+  }
+
+  renderArea.innerHTML = '';
+
+  // Build stored receipt entry
+  const entry = {
+    id: 'rcp-' + Date.now().toString(36),
+    period,
+    label,
+    dateRange,
+    generatedAt: new Date().toISOString(),
+    dataUrl,
+  };
+  receiptStore.unshift(entry);
+  saveReceipts();
+
+  // Replace placeholder with real card
+  const realCard = buildReceiptCard(entry);
+  placeholder.replaceWith(realCard);
+
+  toast('Receipt generated!', 'success');
+}
+
+// ── Build in-app receipt card element ─────────────────────────
+function buildReceiptCard(entry) {
+  const div = document.createElement('div');
+  div.className = 'receipt-card';
+  div.dataset.receiptId = entry.id;
+
+  const genDate = new Date(entry.generatedAt).toLocaleString('en-PH',{
+    month:'short',day:'numeric',year:'numeric',
+    hour:'numeric',minute:'2-digit',hour12:true
+  });
+
+  const previewHTML = entry.dataUrl
+    ? `<div class="receipt-card-preview"><img src="${entry.dataUrl}" alt="Receipt" /></div>`
+    : `<div class="receipt-card-preview" style="background:#ddd;padding:2rem;text-align:center;color:#666;font-size:.82rem;">Preview unavailable</div>`;
+
+  div.innerHTML = `
+    <div class="receipt-card-header">
+      <div class="receipt-card-meta">
+        <div class="receipt-card-title">${escHtml(entry.label)}</div>
+        <div class="receipt-card-date">Generated ${genDate}</div>
+      </div>
+      <div class="receipt-card-actions">
+        ${entry.dataUrl ? `<button class="btn-rcp-action btn-rcp-download" data-action="download" data-id="${entry.id}">⬇ Download</button>` : ''}
+        <button class="btn-rcp-action del" data-action="delete-receipt" data-id="${entry.id}">🗑 Delete</button>
+      </div>
+    </div>
+    ${previewHTML}`;
+
+  return div;
+}
+
+// ── Render all saved receipts ──────────────────────────────────
+function renderReceiptsList() {
+  loadReceipts();
+  const listEl = document.getElementById('receiptsList');
+  const emptyEl = document.getElementById('receiptsEmpty');
+  listEl.innerHTML = '';
+
+  if (receiptStore.length === 0) {
+    listEl.appendChild(emptyEl || (() => {
+      const d = document.createElement('div');
+      d.className='receipts-empty'; d.id='receiptsEmpty';
+      d.innerHTML='<span class="empty-icon">🧾</span><p>No receipts yet. Generate one above!</p>';
+      return d;
+    })());
+    return;
+  }
+
+  // Re-attach empty el (hidden)
+  if (!document.getElementById('receiptsEmpty')) {
+    const d = document.createElement('div');
+    d.className='receipts-empty'; d.id='receiptsEmpty'; d.style.display='none';
+    d.innerHTML='<span class="empty-icon">🧾</span><p>No receipts yet. Generate one above!</p>';
+    listEl.appendChild(d);
+  }
+
+  receiptStore.forEach(entry => {
+    listEl.appendChild(buildReceiptCard(entry));
+  });
+}
+
+// ── Delegate receipt card actions ──────────────────────────────
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+
+  if (btn.dataset.action === 'download') {
+    const id = btn.dataset.id;
+    const entry = receiptStore.find(r => r.id === id);
+    if (!entry || !entry.dataUrl) return;
+    const a = document.createElement('a');
+    a.href = entry.dataUrl;
+    a.download = entry.label.replace(/[^a-z0-9]+/gi,'_') + '.png';
+    a.click();
+    toast('Receipt downloaded!', 'success');
+  }
+
+  if (btn.dataset.action === 'delete-receipt') {
+    const id = btn.dataset.id;
+    receiptStore = receiptStore.filter(r => r.id !== id);
+    saveReceipts();
+    const card = document.querySelector(`[data-receipt-id="${id}"]`);
+    if (card) {
+      card.style.transition = 'opacity .25s, transform .25s';
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(-8px)';
+      setTimeout(() => {
+        card.remove();
+        if (receiptStore.length === 0) renderReceiptsList();
+      }, 250);
+    }
+    toast('Receipt deleted.', 'info');
+  }
 });

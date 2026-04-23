@@ -842,3 +842,359 @@ body {
   .filter-row { flex-wrap: wrap; }
   .search-input { min-width: 0; width: 100%; }
 }
+
+/* ═══════════════════════════ RECEIPTS VIEW ═══════════════════════════ */
+.receipts-topbar {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.receipts-generate-group {
+  display: flex; align-items: center; gap: .75rem; flex-wrap: wrap;
+}
+.receipts-label {
+  font-size: .78rem; font-weight: 700; color: var(--text-secondary);
+  white-space: nowrap;
+}
+.receipt-period-pills { display: flex; gap: 4px; flex-wrap: wrap; }
+.rcp-pill {
+  padding: .32rem .85rem; border-radius: 99px;
+  border: 1px solid var(--border-hi); background: transparent;
+  color: var(--text-secondary); font-family: var(--font-ui);
+  font-size: .78rem; font-weight: 600; cursor: pointer; transition: all .2s;
+}
+.rcp-pill:hover { border-color: var(--income); color: var(--income); }
+.rcp-pill.active { background: var(--income); border-color: var(--income); color: #000; font-weight: 700; }
+
+.receipts-list {
+  display: flex; flex-direction: column; gap: 1.25rem;
+}
+.receipts-empty {
+  display: flex; flex-direction: column; align-items: center;
+  gap: .65rem; padding: 4rem 1rem; color: var(--text-muted);
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.receipts-empty .empty-icon { font-size: 2.5rem; opacity: .3; }
+.receipts-empty p { font-size: .85rem; }
+
+/* ── Saved receipt card (in-app container) ── */
+.receipt-card {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--r-md); overflow: hidden;
+  transition: background .3s;
+}
+.receipt-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .75rem 1rem; border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated);
+}
+.receipt-card-meta { display: flex; flex-direction: column; gap: 2px; }
+.receipt-card-title {
+  font-size: .88rem; font-weight: 700; color: var(--text-primary);
+}
+.receipt-card-date {
+  font-family: var(--font-mono); font-size: .7rem; color: var(--text-muted);
+}
+.receipt-card-actions { display: flex; gap: .45rem; }
+.btn-rcp-action {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .32rem .75rem; border-radius: var(--r-sm);
+  border: 1px solid var(--border-hi); background: var(--bg-elevated);
+  color: var(--text-secondary); font-family: var(--font-ui);
+  font-size: .75rem; font-weight: 600; cursor: pointer; transition: all .2s;
+  white-space: nowrap;
+}
+.btn-rcp-action:hover { border-color: var(--income); color: var(--income); }
+.btn-rcp-action.del:hover { border-color: var(--expense); color: var(--expense); }
+.btn-rcp-download:hover { border-color: var(--balance); color: var(--balance); }
+
+.receipt-card-preview {
+  padding: .75rem; display: flex; justify-content: center;
+  background: #e8e8e6;
+}
+.receipt-card-preview img {
+  width: 100%; max-width: 520px;
+  border-radius: 6px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.25);
+  display: block;
+}
+
+/* ══════════════════════════════════════════════════
+   RECEIPT TEMPLATE (rendered off-screen then captured)
+══════════════════════════════════════════════════ */
+.receipt-tpl {
+  width: 640px;
+  background: #f5f4f0;
+  font-family: 'Georgia', serif;
+  padding: 0;
+  color: #1a1a2e;
+  position: relative;
+}
+
+/* Torn-top edge */
+.receipt-tpl::before {
+  content: '';
+  display: block;
+  height: 18px;
+  background:
+    radial-gradient(circle at 12px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 36px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 60px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 84px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 108px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 132px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 156px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 180px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 204px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 228px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 252px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 276px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 300px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 324px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 348px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 372px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 396px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 420px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 444px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 468px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 492px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 516px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 540px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 564px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 588px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 612px 0, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 636px 0, #f5f4f0 12px, transparent 13px);
+  background-color: #d0cfc8;
+  background-repeat: no-repeat;
+  background-size: 640px 18px;
+}
+
+.receipt-tpl-inner { padding: 28px 44px 0; }
+
+/* Header */
+.rcp-brand {
+  text-align: center; margin-bottom: 4px;
+  font-family: 'Georgia', serif;
+  font-size: 52px; font-weight: 900;
+  color: #0d1b3e; letter-spacing: -1px;
+  font-style: italic;
+}
+.rcp-divider-top {
+  display: flex; align-items: center;
+  margin: 6px 0 10px;
+  gap: 8px;
+}
+.rcp-divider-top .rcp-line { flex: 1; height: 1.5px; background: #0d1b3e; }
+.rcp-divider-top .rcp-diamond { color: #0d1b3e; font-size: 11px; }
+
+.rcp-subtitle {
+  text-align: center;
+  font-family: Arial, sans-serif;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .18em; color: #444;
+  margin-bottom: 14px;
+}
+
+.rcp-meta {
+  font-family: Arial, sans-serif; font-size: 12.5px; color: #333;
+  margin-bottom: 20px; line-height: 1.9;
+}
+.rcp-meta-row { display: flex; gap: 8px; }
+.rcp-meta-key { min-width: 120px; color: #555; }
+.rcp-meta-colon { color: #555; }
+.rcp-meta-val { color: #1a1a2e; font-weight: 600; }
+
+/* Section header (Income / Expenses) */
+.rcp-section-hdr {
+  display: flex; align-items: center; gap: 10px;
+  margin: 16px 0 8px;
+}
+.rcp-section-icon {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.rcp-section-icon.inc { background: #1a7a4a; color: #fff; }
+.rcp-section-icon.exp { background: #c0392b; color: #fff; }
+.rcp-section-label {
+  font-family: Arial, sans-serif;
+  font-size: 15px; font-weight: 800;
+  letter-spacing: .04em;
+}
+.rcp-section-label.inc { color: #1a7a4a; }
+.rcp-section-label.exp { color: #c0392b; }
+
+/* Income table */
+.rcp-income-tbl { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.rcp-income-tbl th {
+  background: #d4edda; color: #1a5c35;
+  font-family: Arial, sans-serif; font-size: 10px; font-weight: 800;
+  letter-spacing: .1em; text-transform: uppercase;
+  padding: 7px 10px; text-align: left;
+}
+.rcp-income-tbl th:last-child { text-align: right; }
+.rcp-income-tbl td {
+  font-family: Arial, sans-serif; font-size: 12px; color: #222;
+  padding: 6px 10px; border-bottom: 1px dashed #c8c8c0;
+}
+.rcp-income-tbl td:last-child { text-align: right; font-weight: 600; }
+.rcp-income-tbl tr:last-child td { border-bottom: none; }
+
+/* Category sub-table (expenses) */
+.rcp-cat-block { margin-bottom: 4px; }
+.rcp-cat-hdr-row {
+  display: flex; align-items: center;
+  background: #f9e8e8; padding: 7px 10px;
+  margin-bottom: 0;
+}
+.rcp-cat-hdr-icon { font-size: 15px; margin-right: 8px; }
+.rcp-cat-hdr-name {
+  font-family: Arial, sans-serif; font-size: 11.5px; font-weight: 800;
+  letter-spacing: .06em; color: #7b1a1a; flex: 1;
+}
+.rcp-cat-col-hdr {
+  font-family: Arial, sans-serif; font-size: 9.5px; font-weight: 800;
+  letter-spacing: .1em; text-transform: uppercase; color: #7b1a1a;
+}
+.rcp-cat-col-date { width: 110px; }
+.rcp-cat-col-desc { flex: 1; }
+.rcp-cat-col-amt { width: 90px; text-align: right; }
+
+.rcp-cat-tx {
+  display: flex; align-items: center;
+  padding: 5px 10px; border-bottom: 1px dashed #ddd;
+  font-family: Arial, sans-serif; font-size: 12px; color: #333;
+}
+.rcp-cat-tx-date { width: 110px; color: #555; }
+.rcp-cat-tx-desc { flex: 1; }
+.rcp-cat-tx-amt { width: 90px; text-align: right; font-weight: 500; }
+
+.rcp-cat-total-row {
+  display: flex; justify-content: space-between;
+  padding: 5px 10px; border-bottom: 1px dashed #ccc;
+  margin-bottom: 6px;
+}
+.rcp-cat-total-label {
+  font-family: Arial, sans-serif; font-size: 10px; font-weight: 800;
+  letter-spacing: .1em; text-transform: uppercase; color: #c0392b;
+}
+.rcp-cat-total-val {
+  font-family: Arial, sans-serif; font-size: 12px; font-weight: 800;
+  color: #c0392b;
+}
+
+/* Totals */
+.rcp-total-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 11px 0; border-top: 2px solid #1a1a2e; margin-top: 4px;
+}
+.rcp-total-label {
+  font-family: Arial, sans-serif; font-size: 14px; font-weight: 900;
+  color: #1a1a2e; letter-spacing: .02em;
+}
+.rcp-total-val {
+  font-family: Arial, sans-serif; font-size: 16px; font-weight: 900;
+}
+.rcp-total-val.inc { color: #1a7a4a; }
+.rcp-total-val.exp { color: #c0392b; }
+
+.rcp-balance-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 0 10px;
+  border-top: 2.5px solid #1a7a4a; border-bottom: 2.5px solid #1a7a4a;
+  margin: 4px 0 20px;
+}
+.rcp-balance-label {
+  font-family: Arial, sans-serif; font-size: 15px; font-weight: 900;
+  color: #1a7a4a;
+}
+.rcp-balance-val {
+  font-family: Arial, sans-serif; font-size: 18px; font-weight: 900;
+  color: #1a7a4a;
+}
+.rcp-balance-val.negative { color: #c0392b; }
+
+/* Smart tip box */
+.rcp-tip-box {
+  background: #fffde8; border: 1px dashed #c8b84a;
+  border-radius: 6px; padding: 12px 14px; margin-bottom: 18px;
+}
+.rcp-tip-title {
+  font-family: Arial, sans-serif; font-size: 10px; font-weight: 800;
+  letter-spacing: .12em; text-transform: uppercase; color: #8a7000;
+  margin-bottom: 5px;
+}
+.rcp-tip-text {
+  font-family: Arial, sans-serif; font-size: 12px; color: #5a5000;
+  line-height: 1.6;
+}
+
+/* Footer */
+.rcp-footer {
+  text-align: center; padding: 10px 0 22px;
+  border-top: 1px dashed #bbb;
+}
+.rcp-footer-heart { font-size: 15px; margin-bottom: 4px; }
+.rcp-footer-msg {
+  font-family: Arial, sans-serif; font-size: 12.5px; font-weight: 700;
+  color: #1a1a2e; margin-bottom: 2px;
+}
+.rcp-footer-sub {
+  font-family: Arial, sans-serif; font-size: 11px; color: #666;
+}
+
+/* Torn-bottom edge (zigzag) */
+.rcp-torn-bottom {
+  height: 18px;
+  background:
+    radial-gradient(circle at 12px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 36px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 60px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 84px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 108px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 132px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 156px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 180px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 204px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 228px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 252px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 276px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 300px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 324px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 348px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 372px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 396px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 420px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 444px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 468px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 492px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 516px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 540px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 564px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 588px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 612px 18px, #f5f4f0 12px, transparent 13px),
+    radial-gradient(circle at 636px 18px, #f5f4f0 12px, transparent 13px);
+  background-color: #d0cfc8;
+  background-repeat: no-repeat;
+  background-size: 640px 18px;
+}
+
+/* Generating spinner overlay on receipt card */
+.receipt-generating {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: .65rem;
+  padding: 3rem 1rem;
+  color: var(--text-muted); font-size: .82rem;
+}
+.spin-ring {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 3px solid var(--border-hi);
+  border-top-color: var(--income);
+  animation: spin .7s linear infinite;
+}
+
+@media (max-width: 768px) {
+  .receipts-generate-group { gap: .5rem; }
+  .receipt-period-pills { gap: 3px; }
+}
